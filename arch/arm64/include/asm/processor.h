@@ -73,7 +73,20 @@ extern phys_addr_t arm64_dma_phys_limit;
 #define ARCH_LOW_ADDRESS_LIMIT	(arm64_dma_phys_limit - 1)
 
 extern unsigned int boot_reason;
+/*[Arima_8901][bozhi_lin] ARFP3-91: Expose power up and power down reason 20190221 begin*/
+#if 1
+extern unsigned int qpnp_pon_reason_extern;
+extern unsigned int qpnp_poff_reason_extern;
+#else
+extern char qpnp_pon_reason_extern[256];
+extern char qpnp_poff_reason_extern[256];
+#endif
+/*[Arima_8901][bozhi_lin] 20190221 end*/
 extern unsigned int cold_boot;
+
+/*[Arima_8901][bozhi_lin] ARFP3-77: Expose main memory hardware revision 20190225 begin*/
+extern char ddr_vendor[32];
+/*[Arima_8901][bozhi_lin] 20190225 end*/
 
 struct debug_info {
 	/* Have we suspended stepping by a debugger? */

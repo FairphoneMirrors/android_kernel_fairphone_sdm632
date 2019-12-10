@@ -34,3 +34,6 @@ obj-$(CONFIG_RMI4_CORE)		+= rmi4/
 obj-$(CONFIG_INPUT_KEYRESET)	+= keyreset.o
 obj-$(CONFIG_INPUT_KEYCOMBO)	+= keycombo.o
 
+# [FairPhone][Fingerprint][akenhsu] FingerPrint driver porting 20181108 BEGIN
+obj-$(CONFIG_ELAN_FINGERPRINT) +=fingerprint/
+# [FairPhone][Fingerprint][akenhsu] 20181108 END

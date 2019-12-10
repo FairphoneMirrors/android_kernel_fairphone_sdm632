@@ -1089,4 +1089,12 @@ config SND_SOC_TPA6130A2
 	tristate "Texas Instruments TPA6130A2 headphone amplifier"
 	depends on I2C
 
+#[FairPhone][Audio][jinjia]=2018.11.21=smart amp porting. -s
+config SND_SMARTPA_AW8898
+	tristate "SoC Audio for awinic aw8898 series"
+	depends on I2C
+	help
+		This option enables support for aw8898 series Smart PA.
+#[FairPhone][Audio][jinjia]=2018.11.21=smart amp porting. -e
+
 endmenu

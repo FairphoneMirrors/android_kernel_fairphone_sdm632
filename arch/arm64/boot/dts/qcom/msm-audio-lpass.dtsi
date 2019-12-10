@@ -115,19 +115,22 @@
 			qcom,msm-mi2s-tx-lines = <2>;
 		};
 
-		dai_mi2s4: qcom,msm-dai-q6-mi2s-quin {
+//[FairPhone][Audio][jinjia]=2018.11.21=smart amp porting. -s
+		dai_mi2s4: qcom,msm-dai-q6-mi2s-senary {
 			compatible = "qcom,msm-dai-q6-mi2s";
 			qcom,msm-dai-q6-mi2s-dev-id = <4>;
-			qcom,msm-mi2s-rx-lines = <1>;
-			qcom,msm-mi2s-tx-lines = <2>;
+			qcom,msm-mi2s-rx-lines = <3>;
+			qcom,msm-mi2s-tx-lines = <0>;
 		};
 
-		dai_mi2s5: qcom,msm-dai-q6-mi2s-senary {
+		dai_mi2s5: qcom,msm-dai-q6-mi2s-quin {
 			compatible = "qcom,msm-dai-q6-mi2s";
-			qcom,msm-dai-q6-mi2s-dev-id = <6>;
-			qcom,msm-mi2s-rx-lines = <0>;
-			qcom,msm-mi2s-tx-lines = <3>;
+			qcom,msm-dai-q6-mi2s-dev-id = <4>;
+			qcom,msm-mi2s-rx-lines = <3>;
+			qcom,msm-mi2s-tx-lines = <0>;
 		};
+//[FairPhone][Audio][jinjia]=2018.11.21=smart amp porting. -e
+
 	};
 
 	lsm: qcom,msm-lsm-client {

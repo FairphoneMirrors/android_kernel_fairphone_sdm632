@@ -239,6 +239,12 @@ static int is_sensor_port(struct msm_ipc_router_remote_port *rport)
 
 	if (rport && rport->server) {
 		svcid = rport->server->name.service;
+		//<2019/09/05,ShermanWei for Qualcomm KBA-180725024109 patch
+		//to solve that far Proximity the screen can not light on sometimes.
+		//// hold wakelock for thresh(proximity) algo sensor and OEM1(e.g: pick up gesture sensor)
+		if (svcid == 277 || svcid == 287)
+			return false;
+		//>2019/09/05,ShermanWei
 		if (svcid == 400 || (svcid >= 256 && svcid <= 320))
 			return true;
 	}

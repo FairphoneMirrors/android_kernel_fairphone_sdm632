@@ -793,6 +793,9 @@
 #define SW_HPHR_OVERCURRENT	0x11  /* set = over current on right hph */
 #define SW_MICROPHONE2_INSERT   0x12  /* set = inserted */
 #define SW_UNSUPPORT_INSERT	0x13  /* set = unsupported device inserted */
+//[FairPhone][JasonY] SAR sensor driver porting -BEGIN
+#define SW_SAR_SENSOR		0x14  /* set = sar sensor detect near */
+//[FairPhone][JasonY] SAR sensor driver porting -END
 #define SW_MAX			0x20
 #define SW_CNT			(SW_MAX+1)
 

@@ -290,15 +290,18 @@ static void fw_free_buf(struct firmware_buf *buf)
 		spin_unlock(&fwc->lock);
 }
 
+//[FairPhone][Audio][jinjia]=2018.11.21=smart amp porting. -s
 /* direct firmware loading support */
 static char fw_path_para[256];
 static const char * const fw_path[] = {
 	fw_path_para,
+	"/system/vendor/firmware",
 	"/lib/firmware/updates/" UTS_RELEASE,
 	"/lib/firmware/updates",
 	"/lib/firmware/" UTS_RELEASE,
 	"/lib/firmware"
 };
+//[FairPhone][Audio][jinjia]=2018.11.21=smart amp porting. -e
 
 /*
  * Typical usage is that passing 'firmware_class.path=$CUSTOMIZED_PATH'

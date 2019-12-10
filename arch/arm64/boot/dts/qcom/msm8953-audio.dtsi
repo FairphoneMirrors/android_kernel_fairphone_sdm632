@@ -36,7 +36,7 @@
 	};
 
 	int_codec: sound {
-		status = "okay";
+		status = "disabled";
 		compatible = "qcom,msm8952-audio-codec";
 		qcom,model = "msm8953-snd-card-mtp";
 		reg = <0xc051000 0x4>,
@@ -76,10 +76,12 @@
 				"WSA_SPK OUT", "VDD_WSA_SWITCH",
 				"SpkrMono WSA_IN", "WSA_SPK OUT";
 
-		qcom,cdc-us-euro-gpios = <&tlmm 63 0>;
-		qcom,cdc-us-eu-gpios = <&cdc_us_euro_sw>;
-		qcom,cdc-comp-gpios = <&cdc_comp_gpios>;
-		qcom,pri-mi2s-gpios = <&cdc_pri_mi2s_gpios>;
+//[FairPhone][Audio][jinjia]=2019.02.01=Remove the config of us-eu-gpios. -s
+		//qcom,cdc-us-euro-gpios = <&tlmm 63 0>;
+		//qcom,cdc-us-eu-gpios = <&cdc_us_euro_sw>;
+//[FairPhone][Audio][jinjia]=2019.02.01=Remove the config of us-eu-gpios. -e
+		//qcom,cdc-comp-gpios = <&cdc_comp_gpios>;
+		//qcom,pri-mi2s-gpios = <&cdc_pri_mi2s_gpios>;
 		qcom,quin-mi2s-gpios = <&cdc_quin_mi2s_gpios>;
 
 		qcom,afe-rxtx-lb;
@@ -134,14 +136,19 @@
 		qcom,msm-vdd-wsa-switch-current = <10000>;
 	};
 
+//[FairPhone][Audio][jinjia]=2019.02.01=Remove the config of us-eu-gpios. -s
+/*
 	cdc_us_euro_sw: msm_cdc_pinctrl_us_euro_sw {
 		compatible = "qcom,msm-cdc-pinctrl";
 		pinctrl-names = "aud_active", "aud_sleep";
 		pinctrl-0 = <&cross_conn_det_act>;
 		pinctrl-1 = <&cross_conn_det_sus>;
 	};
+*/
+//[FairPhone][Audio][jinjia]=2019.02.01=Remove the config of us-eu-gpios. -e
 
 	cdc_comp_gpios: cdc_comp_pinctrl {
+		status = "disabled";
 		compatible = "qcom,msm-cdc-pinctrl";
 		pinctrl-names = "aud_active", "aud_sleep";
 		pinctrl-0 = <&cdc_pdm_comp_lines_act>;
@@ -149,6 +156,7 @@
 	};
 
 	cdc_pri_mi2s_gpios: msm_cdc_pinctrl_pri {
+		status = "disabled";
 		compatible = "qcom,msm-cdc-pinctrl";
 		pinctrl-names = "aud_active", "aud_sleep";
 		pinctrl-0 = <&cdc_pdm_lines_act &cdc_pdm_lines_2_act>;
@@ -168,7 +176,7 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 		wsa881x_i2c_f: wsa881x-i2c-codec@f {
-			status = "okay";
+			status = "disabled";
 			compatible = "qcom,wsa881x-i2c-codec";
 			reg = <0x0f>;
 			qcom,wsa-analog-vi-gpio = <&wsa881x_analog_vi_gpio>;
@@ -177,7 +185,7 @@
 				<&wsa881x_analog_reset_gpio>;
 		};
 		wsa881x_i2c_45: wsa881x-i2c-codec@45 {
-			status = "okay";
+			status = "disabled";
 			compatible = "qcom,wsa881x-i2c-codec";
 			reg = <0x45>;
 		};
@@ -196,25 +204,43 @@
 		pinctrl-1 = <&wsa_clk_off>;
 	};
 	wsa881x_analog_reset_gpio: wsa881x_analog_reset_pctrl {
-		compatible = "qcom,msm-cdc-pinctrl";
-		pinctrl-names = "aud_active", "aud_sleep";
-		pinctrl-0 = <&wsa_reset_on>;
-		pinctrl-1 = <&wsa_reset_off>;
+		status = "disabled";
+		//compatible = "qcom,msm-cdc-pinctrl";
+		//pinctrl-names = "aud_active", "aud_sleep";
+		//pinctrl-0 = <&wsa_reset_on>;
+		//pinctrl-1 = <&wsa_reset_off>;
 	};
 
+//[FairPhone][Audio][jinjia]=2018.11.21=Audio porting. -s
 	ext_codec: sound-9335 {
-		status = "disabled";
+		status = "okay";
 		compatible = "qcom,msm8952-audio-slim-codec";
 		qcom,model = "msm8953-tasha-snd-card";
 
 		reg = <0xc051000 0x4>,
 			<0xc051004 0x4>,
 			<0xc055000 0x4>,
-			<0xc052000 0x4>;
+			<0xc052000 0x4>,
+			<0x0c056000 0x4>,
+			<0x0c054000 0x4>,
+			<0x0c053000 0x4>;
 		reg-names = "csr_gp_io_mux_mic_ctl",
 			"csr_gp_io_mux_spkr_ctl",
 			"csr_gp_io_lpaif_pri_pcm_pri_mode_muxsel",
-			"csr_gp_io_mux_quin_ctl";
+			"csr_gp_io_mux_quin_ctl",
+			"csr_gp_io_lpaif_qui_pcm_sec_mode_muxsel",
+			"csr_gp_io_mux_mic_ext_clk_ctl",
+			"csr_gp_io_mux_sec_tlmm_ctl";
+
+/*		reg-names = "csr_gp_io_mux_mic_ctl",
+			"csr_gp_io_mux_spkr_ctl",
+			"csr_gp_io_lpaif_pri_pcm_pri_mode_muxsel",
+			"csr_gp_io_mux_quin_ctl",
+			"csr_gp_io_lpaif_qui_pcm_sec_mode_muxsel",
+			"csr_gp_io_mux_mic_ext_clk_ctl",
+			"csr_gp_io_mux_sec_tlmm_ctl";
+*/
+		qcom,msm-ext-pa = "quinary";
 
 		qcom,audio-routing =
 			"AIF4 VI", "MCLK",
@@ -252,10 +278,8 @@
 			"SpkrRight IN", "SPK2 OUT";
 
 		qcom,tasha-mclk-clk-freq = <9600000>;
-		qcom,cdc-us-euro-gpios = <&tlmm 63 0>;
-		qcom,msm-mbhc-hphl-swh = <0>;
-		qcom,msm-mbhc-gnd-swh = <0>;
-		qcom,cdc-us-eu-gpios = <&cdc_us_euro_sw>;
+		qcom,msm-mbhc-hphl-swh = <1>;
+		qcom,msm-mbhc-gnd-swh = <1>;
 		qcom,quin-mi2s-gpios = <&cdc_quin_mi2s_gpios>;
 
 		asoc-platform = <&pcm0>, <&pcm1>, <&pcm2>, <&voip>, <&voice>,
@@ -298,22 +322,23 @@
 				"msm-dai-q6-dev.12289", "msm-dai-q6-dev.12292",
 				"msm-dai-q6-dev.12293", "msm-dai-q6-dev.16396";
 
-		asoc-codec = <&stub_codec>, <&hdmi_dba>;
-		asoc-codec-names = "msm-stub-codec.1", "msm-hdmi-dba-codec-rx";
+		asoc-codec = <&stub_codec>, <&dai_mi2s5>;
+		asoc-codec-names = "msm-stub-codec.1", "msm-dai-q6-mi2s.5";
 
-		qcom,wsa-max-devs = <2>;
+		qcom,wsa-max-devs = <0>;
 		qcom,wsa-devs = <&wsa881x_211>, <&wsa881x_212>,
 				<&wsa881x_213>, <&wsa881x_214>;
 		qcom,wsa-aux-dev-prefix = "SpkrLeft", "SpkrRight",
 				"SpkrLeft", "SpkrRight";
 	};
+//[FairPhone][Audio][jinjia]=2018.11.21=Audio porting. -e
 
 	cpe: qcom,msm-cpe-lsm {
 		compatible = "qcom,msm-cpe-lsm";
 	};
 
 	wcd9xxx_intc: wcd9xxx-irq {
-		status = "disabled";
+		status = "okay";
 		compatible = "qcom,wcd9xxx-irq";
 		interrupt-controller;
 		#interrupt-cells = <1>;
@@ -324,7 +349,7 @@
 	};
 
 	clock_audio: audio_ext_clk {
-		status = "disabled";
+		status = "okay";
 		compatible = "qcom,audio-ref-clk";
 		clock-names = "osr_clk";
 		qcom,node_has_rpm_clock;
@@ -337,7 +362,7 @@
 	};
 
 	wcd_rst_gpio: msm_cdc_pinctrl@67 {
-		status = "disabled";
+		status = "okay";
 		compatible = "qcom,msm-cdc-pinctrl";
 		pinctrl-names = "aud_active", "aud_sleep";
 		pinctrl-0 = <&cdc_reset_active>;
@@ -346,16 +371,16 @@
 };
 
 &slim_msm {
-	status = "disabled";
+	status = "okay";
 
 	dai_slim: msm_dai_slim {
-		status = "disabled";
+		status = "okay";
 		compatible = "qcom,msm-dai-slim";
 		elemental-addr = [ff ff ff fe 17 02];
 	};
 
 	wcd9335: tasha_codec {
-		status = "disabled";
+		status = "okay";
 		compatible = "qcom,tasha-slim-pgd";
 		elemental-addr = [00 01 A0 01 17 02];
 
@@ -381,7 +406,7 @@
 
 		qcom,cdc-on-demand-supplies = "cdc-vdd-mic-bias";
 		qcom,cdc-micbias1-mv = <1800>;
-		qcom,cdc-micbias2-mv = <1800>;
+		qcom,cdc-micbias2-mv = <2800>;
 		qcom,cdc-micbias3-mv = <1800>;
 		qcom,cdc-micbias4-mv = <1800>;
 
@@ -438,7 +463,7 @@
 
 &pm8953_1 {
 	pmic_analog_codec: analog-codec@f000 {
-		status = "okay";
+		status = "disabled";
 		compatible = "qcom,pmic-analog-codec";
 		reg = <0xf000 0x200>;
 		#address-cells = <2>;

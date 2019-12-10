@@ -28,6 +28,10 @@
 #include "dsi-panel-boent51021-1200p-video.dtsi"
 #include "dsi-panel-hx8394d-wxga-video.dtsi"
 #include "dsi-panel-inxnt51021-1200p-video.dtsi"
+/*[Arima_8901][Jialong] lcm driver porting begin*/
+#include "dsi-hx83112b-truly-1080p-video.dtsi"
+#include "dsi-hx83112b-djn-1080p-cmd.dtsi"
+/*[Arima_8901][Jialong] lcm driver porting end*/
 
 &soc {
 	dsi_panel_pwr_supply: dsi_panel_pwr_supply {
@@ -70,6 +74,50 @@
 		};
 	};
 };
+
+/*[Arima_8901][Jialong] lcm driver porting begin*/
+&dsi_hx83112b_truly_1080p_video {
+	qcom,mdss-dsi-panel-timings-phy-v2 = [24 1e 08 09 05 03 04 a0
+		24 1e 08 09 05 03 04 a0
+		24 1e 08 09 05 03 04 a0
+		24 1e 08 09 05 03 04 a0
+		24 1a 08 09 05 03 04 a0];
+	qcom,mdss-dsi-min-refresh-rate = <48>;
+	qcom,mdss-dsi-max-refresh-rate = <60>;
+	qcom,mdss-dsi-pan-enable-dynamic-fps;
+	qcom,mdss-dsi-pan-fps-update = "dfps_immediate_porch_mode_vfp";
+	//qcom,esd-check-enabled;
+	//qcom,mdss-dsi-panel-status-check-mode = "reg_read";
+	//qcom,mdss-dsi-panel-status-command = [06 01 00 01 00 00 01 0a];
+	qcom,mdss-dsi-panel-status-command-state = "dsi_hs_mode";
+	//qcom,mdss-dsi-panel-status-value = <0x9c>;
+	//qcom,mdss-dsi-panel-on-check-value = <0x9c>;
+	//qcom,mdss-dsi-panel-status-read-length = <1>;
+	//qcom,mdss-dsi-panel-max-error-count = <3>;
+};
+/*[Arima_8901][Jialong] lcm driver porting end*/
+
+//[Arima][8901][JialongJhan] Command mode 20190516 Start
+&dsi_djn_hx83112b_1080p_cmd {
+	qcom,mdss-dsi-panel-timings-phy-v2 = [24 1e 08 09 05 03 04 a0
+		24 1e 08 09 05 03 04 a0
+		24 1e 08 09 05 03 04 a0
+		24 1e 08 09 05 03 04 a0
+		24 1a 08 09 05 03 04 a0];
+	qcom,mdss-dsi-min-refresh-rate = <48>;
+	qcom,mdss-dsi-max-refresh-rate = <60>;
+	qcom,mdss-dsi-pan-enable-dynamic-fps;
+	qcom,mdss-dsi-pan-fps-update = "dfps_immediate_porch_mode_vfp";
+	//qcom,esd-check-enabled;
+	//qcom,mdss-dsi-panel-status-check-mode = "reg_read";
+	//qcom,mdss-dsi-panel-status-command = [06 01 00 01 00 00 01 0a];
+	qcom,mdss-dsi-panel-status-command-state = "dsi_hs_mode";
+	//qcom,mdss-dsi-panel-status-value = <0x9c>;
+	//qcom,mdss-dsi-panel-on-check-value = <0x9c>;
+	//qcom,mdss-dsi-panel-status-read-length = <1>;
+	//qcom,mdss-dsi-panel-max-error-count = <3>;
+};
+//[Arima][8901][JialongJhan] Command mode 20190516 End
 
 &dsi_truly_1080_vid {
 	qcom,mdss-dsi-panel-timings-phy-v2 = [23 1e 08 09 05 03 04 a0

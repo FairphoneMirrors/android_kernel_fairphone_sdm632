@@ -20,27 +20,31 @@
 			#size-cells = <0>;
 
 			wsa881x_211: wsa881x@20170211 {
+				status = "disabled";
 				compatible = "qcom,wsa881x";
 				reg = <0x00 0x20170211>;
-				qcom,spkr-sd-n-gpio = <&tlmm 96 0>;
+				//qcom,spkr-sd-n-gpio = <&tlmm 96 0>;
 			};
 
 			wsa881x_212: wsa881x@20170212 {
+				status = "disabled";
 				compatible = "qcom,wsa881x";
 				reg = <0x00 0x20170212>;
-				qcom,spkr-sd-n-gpio = <&tlmm 96 0>;
+				//qcom,spkr-sd-n-gpio = <&tlmm 96 0>;
 			};
 
 			wsa881x_213: wsa881x@21170213 {
+				status = "disabled";
 				compatible = "qcom,wsa881x";
 				reg = <0x00 0x21170213>;
-				qcom,spkr-sd-n-gpio = <&tlmm 96 0>;
+				//qcom,spkr-sd-n-gpio = <&tlmm 96 0>;
 			};
 
 			wsa881x_214: wsa881x@21170214 {
+				status = "disabled";
 				compatible = "qcom,wsa881x";
 				reg = <0x00 0x21170214>;
-				qcom,spkr-sd-n-gpio = <&tlmm 96 0>;
+				//qcom,spkr-sd-n-gpio = <&tlmm 96 0>;
 			};
 		};
 	};

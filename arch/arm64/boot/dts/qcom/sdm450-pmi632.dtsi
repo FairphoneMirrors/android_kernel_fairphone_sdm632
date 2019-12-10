@@ -36,8 +36,20 @@
 /{
 	mtp_batterydata: qcom,battery-data {
 		qcom,batt-id-range-pct = <15>;
+//<2019/11/05-JessicaTseng, Kayo battery profile, it is official
+//<2019/09/17-JessicaTseng, Add Kayo battery profile
+//<--[Lightphone][Charging][JasonHsing] Battery profile for Fuel Gauge 20190123 BEGIN
+#if 1
+		#include "qg-batterydata-Fuji-3000mah-Jan22th2019-pmi632.dtsi"
+		#include "qg-batterydata-Kayo-3000mah-Nov4th2019-pmi632.dtsi"
+//		#include "qg-batterydata-Kayo-3000mah-Jan22th2019-pmi632.dtsi"
+#else
 		#include "qg-batterydata-ascent-3450mah.dtsi"
 		#include "qg-batterydata-mlp356477-2800mah.dtsi"
+#endif
+//-->[Lightphone][Charging][JasonHsing] Battery profile for Fuel Gauge 20190123 END
+//>2019/09/17-JessicaTseng
+//>2019/11/05-JessicaTseng
 	};
 };
 
@@ -373,6 +385,7 @@
 	};
 };
 
+/*
 &tlmm {
 	pmx_mdss {
 		mdss_dsi_active: mdss_dsi_active {
@@ -393,3 +406,24 @@
 		  };
 	};
 };
+*/
+/*[Arima_8901][allen_yu] Modify to edge trigger and upgrade himax first fw CIDFF00_D01_C02 20181128 begin*/
+/*[Arima_8901][allen_yu] Himax83112-B touch driver porting (Fairphone) 20181102 begin*/
+&i2c_3 {
+	status = "ok";
+	himax_ts@48 {
+		compatible = "himax,hxcommon";
+		reg = <0x48>;
+		interrupt-parent = <&tlmm>;
+		interrupts = <65 0x2008>;
+		vcc_i2c-supply = <&pm8953_l6>;
+		vdd-ana-supply = <&pm8953_l10>;
+		himax,display-coords = <0 1080 0 2160>;
+		himax,panel-coords = <0 1080 0 2160>;
+		himax,irq-gpio = <&tlmm 65 0x2008>;
+		himax,rst-gpio = <&tlmm 64 0x00>;
+		report_type = <1>;
+	};
+};
+/*[Arima_8901][allen_yu] 20181102 end*/
+/*[Arima_8901][allen_yu] 20181128 end*/

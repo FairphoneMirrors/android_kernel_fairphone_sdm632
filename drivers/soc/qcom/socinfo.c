@@ -1983,6 +1983,67 @@ static void socinfo_select_format(void)
 	}
 }
 
+/*[Arima_8901][bozhi_lin] ARFP3-77: Expose main memory hardware revision 20190225 begin*/
+char ddr_vendor[32] = "";
+//BOOT.BF.3.3.2\boot_images\core\api\boot\ddr_common.h
+typedef enum
+{
+  RESERVED_0,                        /**< Reserved for future use. */
+  SAMSUNG,                           /**< Samsung. */
+  QIMONDA,                           /**< Qimonda. */
+  ELPIDA,                            /**< Elpida Memory, Inc. */
+  ETRON,                             /**< Etron Technology, Inc. */
+  NANYA,                             /**< Nanya Technology Corporation. */
+  HYNIX,                             /**< Hynix Semiconductor Inc. */
+  MOSEL,                             /**< Mosel Vitelic Corporation. */
+  WINBOND,                           /**< Winbond Electronics Corp. */
+  ESMT,                              /**< Elite Semiconductor Memory Technology Inc. */
+  RESERVED_1,                        /**< Reserved for future use. */
+  SPANSION,                          /**< Spansion Inc. */
+  SST,                               /**< Silicon Storage Technology, Inc. */
+  ZMOS,                              /**< ZMOS Technology, Inc. */
+  INTEL,                             /**< Intel Corporation. */
+  NUMONYX = 254,                     /**< Numonyx, acquired by Micron Technology, Inc. */
+  MICRON = 255,                      /**< Micron Technology, Inc. */
+  DDR_MANUFACTURES_MAX = 0x7FFFFFFF  /**< Forces the enumerator to 32 bits. */
+} DDR_MANUFACTURES;
+
+//uint32_t smem_get_ddr_manufacturer_id()
+void smem_get_ddr_manufacturer_id(unsigned char *buf)
+{
+	unsigned int *manufacturer_id;
+	unsigned int manufacturer_id_len = sizeof(manufacturer_id);
+
+	manufacturer_id = smem_get_entry(SMEM_ID_VENDOR2, &manufacturer_id_len, 0,
+							SMEM_ANY_HOST_FLAG);
+	if (manufacturer_id == NULL)
+	{
+		pr_err("[B]%s(%d): Failed to read SMEM_ID_VENDOR2\n", __func__, __LINE__);
+	}
+
+	switch(*manufacturer_id)
+	{
+		case SAMSUNG:
+			snprintf((char *)buf, 64, "SAMSUNG");
+			break;
+		case ELPIDA:
+			snprintf((char *)buf, 64, "ELPIDA");
+			break;
+		case HYNIX:
+			snprintf((char *)buf, 64, "HYNIX");
+			break;
+		case MICRON:
+			snprintf((char *)buf, 64, "MICRON");
+			break;
+		default:
+			snprintf((char *)buf, 64, "OTHERS");
+			break;
+	}
+
+	pr_err("[B]%s(%d): manufacturer_id=%d, %s\n", __func__, __LINE__, *manufacturer_id, buf);
+}
+/*[Arima_8901][bozhi_lin] 20190225 end*/
+
 int __init socinfo_init(void)
 {
 	static bool socinfo_init_done;
@@ -2011,6 +2072,12 @@ int __init socinfo_init(void)
 	socinfo_print();
 	arch_read_hardware_id = msm_read_hardware_id;
 	socinfo_init_done = true;
+
+/*[Arima_8901][bozhi_lin] ARFP3-77: Expose main memory hardware revision 20190225 begin*/
+	memset(ddr_vendor, 0, sizeof(ddr_vendor));
+	smem_get_ddr_manufacturer_id((unsigned char *) ddr_vendor);
+	pr_err("[B]%s(%d): ddr_vendor=%s\n", __func__, __LINE__, ddr_vendor);
+/*[Arima_8901][bozhi_lin] 20190225 end*/
 
 	return 0;
 }
