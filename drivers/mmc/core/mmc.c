@@ -21,6 +21,9 @@
 #include <linux/mmc/mmc.h>
 #include <linux/reboot.h>
 #include <trace/events/mmc.h>
+/* [20191101][TracyChui]Add memory detect node for service menu start */
+#include <linux/proc_fs.h>
+/* [20191101][TracyChui]Add memory detect node for service menu end */
 
 #include "core.h"
 #include "host.h"
@@ -29,6 +32,15 @@
 #include "sd_ops.h"
 
 #define DEFAULT_CMD6_TIMEOUT_MS	500
+
+/* [20191101][TracyChui]Add memory detect node for service menu start */
+extern void seq_printf(struct seq_file *m, const char *f, ...);
+extern int single_open(struct file *, int (*)(struct seq_file *, void *), void *);
+extern ssize_t seq_read(struct file *, char __user *, size_t, loff_t *);
+extern loff_t seq_lseek(struct file *, loff_t, int);
+extern int single_release(struct inode *, struct file *);
+static u32 memory_cid;
+/* [20191101][TracyChui]Add memory detect node for service menu end */
 
 static const unsigned int tran_exp[] = {
 	10000,		100000,		1000000,	10000000,
@@ -3144,6 +3156,33 @@ static const struct mmc_bus_ops mmc_ops = {
 	.post_hibernate = mmc_post_hibernate
 };
 
+/* [20191101][TracyChui]Add memory detect node for service menu start */
+static int proc_memory_vendor_show(struct seq_file *m, void *v)
+{
+	if (memory_cid==0x15010052)
+		{
+			seq_printf(m, "Samsung_2nd\n");
+		}
+	else
+		{
+			seq_printf(m, "Samsung_Main\n");
+		}
+    return 0;
+}
+
+static int proc_memory_vendor_open(struct inode *inode, struct file *file)
+{
+    return single_open(file, proc_memory_vendor_show, NULL);
+}
+
+static const struct file_operations proc_memory_vendor_fops = {
+    .open  = proc_memory_vendor_open,
+    .read = seq_read,
+    .llseek = seq_lseek,
+    .release = single_release,
+};
+/* [20191101][TracyChui]Add memory detect node for service menu end */
+
 /*
  * Starting point for MMC card init.
  */
@@ -3206,6 +3245,15 @@ int mmc_attach_mmc(struct mmc_host *host)
 	}
 
 	register_reboot_notifier(&host->card->reboot_notify);
+
+	/* [20191101][TracyChui]Add memory detect node for service menu start */
+	proc_create("memory_vendor", 0, NULL, &proc_memory_vendor_fops);
+
+	if(host->card->type == MMC_TYPE_MMC)
+		{
+			memory_cid=host->card->raw_cid[0];
+		}
+	/* [20191101][TracyChui]Add memory detect node for service menu end */
 
 	return 0;
 

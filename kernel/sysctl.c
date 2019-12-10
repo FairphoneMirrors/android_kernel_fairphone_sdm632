@@ -66,6 +66,9 @@
 #include <linux/kexec.h>
 #include <linux/bpf.h>
 #include <linux/mount.h>
+/*[Arima_8901][bozhi_lin] ARFP3-77: Expose main memory hardware revision 20190225 begin*/
+#include <soc/qcom/smem.h>
+/*[Arima_8901][bozhi_lin] 20190225 end*/
 
 #include <asm/uaccess.h>
 #include <asm/processor.h>
@@ -228,6 +231,12 @@ static struct ctl_table vm_table[];
 static struct ctl_table fs_table[];
 static struct ctl_table debug_table[];
 static struct ctl_table dev_table[];
+/*[Arima_8901][bozhi_lin] ARFP3-91: Expose power up and power down reason 20190221 begin*/
+static struct ctl_table qpnp_power_on_table[];
+/*[Arima_8901][bozhi_lin] 20190221 end*/
+/*[Arima_8901][bozhi_lin] ARFP3-77: Expose main memory hardware revision 20190225 begin*/
+static struct ctl_table ddr_table[];
+/*[Arima_8901][bozhi_lin] 20190225 end*/
 extern struct ctl_table random_table[];
 #ifdef CONFIG_EPOLL
 extern struct ctl_table epoll_table[];
@@ -265,6 +274,13 @@ static struct ctl_table sysctl_base_table[] = {
 		.mode		= 0555,
 		.child		= dev_table,
 	},
+/*[Arima_8901][bozhi_lin] ARFP3-91: Expose power up and power down reason 20190221 begin*/
+	{
+		.procname	= "qpnp-power-on",
+		.mode		= 0555,
+		.child		= qpnp_power_on_table,
+	},
+/*[Arima_8901][bozhi_lin] 20190221 end*/
 	{ }
 };
 
@@ -2060,8 +2076,75 @@ static struct ctl_table debug_table[] = {
 };
 
 static struct ctl_table dev_table[] = {
+/*[Arima_8901][bozhi_lin] ARFP3-77: Expose main memory hardware revision 20190225 begin*/
+	{
+		.procname	= "ddr",
+		.mode		= 0555,
+		.child		= ddr_table,
+	},
+/*[Arima_8901][bozhi_lin] 20190225 end*/
 	{ }
 };
+
+/*[Arima_8901][bozhi_lin] ARFP3-91: Expose power up and power down reason 20190221 begin*/
+static struct ctl_table qpnp_power_on_table[] = {
+#if 1
+	{
+		.procname	= "pon_reason",
+		.data		= &qpnp_pon_reason_extern,
+		.maxlen		= sizeof(int),
+		.mode		= 0444,
+		.proc_handler	= proc_dointvec,
+	},
+	{
+		.procname	= "poff_reason",
+		.data		= &qpnp_poff_reason_extern,
+		.maxlen		= sizeof(int),
+		.mode		= 0444,
+		.proc_handler	= proc_dointvec,
+	},
+#else
+	{
+		.procname	= "pon_reason",
+		.data		= &qpnp_pon_reason_extern,
+		.maxlen		= 256,
+		.mode		= 0444,
+		.proc_handler	= proc_dostring,
+	},
+	{
+		.procname	= "poff_reason",
+		.data		= &qpnp_poff_reason_extern,
+		.maxlen		= 256,
+		.mode		= 0444,
+		.proc_handler	= proc_dostring,
+	},
+#endif
+	{ }
+};
+/*[Arima_8901][bozhi_lin] 20190221 end*/
+
+/*[Arima_8901][bozhi_lin] ARFP3-77: Expose main memory hardware revision 20190225 begin*/
+static struct ctl_table ddr_table[] = {
+#if 1
+	{
+		.procname	= "vendor",
+		.data		= &ddr_vendor,
+		.maxlen		= 32,
+		.mode		= 0444,
+		.proc_handler	= proc_dostring,
+	},
+#else
+	{
+		.procname	= "vendor",
+		.data		= &qpnp_pon_reason_extern,
+		.maxlen		= sizeof(int),
+		.mode		= 0444,
+		.proc_handler	= proc_dointvec,
+	},
+#endif
+	{ }
+};
+/*[Arima_8901][bozhi_lin] 20190225 end*/
 
 int __init sysctl_init(void)
 {

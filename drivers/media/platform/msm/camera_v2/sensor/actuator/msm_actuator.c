@@ -118,7 +118,9 @@ static void msm_actuator_parse_i2c_params(struct msm_actuator_ctrl_t *a_ctrl,
 				write_arr[i].data_shift) |
 				((hw_dword & write_arr[i].hw_mask) >>
 				write_arr[i].hw_shift);
-
+//[Camera] Modify for IMX363 module AF Person Liu 20190509 S
+				value = abs(1023-value);
+//[Camera] Modify for IMX363 module AF Person Liu 20190509 S
 			if (write_arr[i].reg_addr != 0xFFFF) {
 				i2c_byte1 = write_arr[i].reg_addr;
 				i2c_byte2 = value;

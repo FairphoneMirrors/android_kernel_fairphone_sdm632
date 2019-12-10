@@ -1580,7 +1580,234 @@ static int smb5_init_batt_psy(struct smb5 *chip)
 
 	return rc;
 }
+/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area start */
+/******************************
+ * DUAL ROLE REGISTRATION *
+ ******************************/
+static enum dual_role_property smb5_dr_properties[] = {
+	DUAL_ROLE_PROP_SUPPORTED_MODES,
+	DUAL_ROLE_PROP_MODE,
+	DUAL_ROLE_PROP_PR,
+	DUAL_ROLE_PROP_DR,
+};
 
+static int smb5_dr_prop_writeable(struct dual_role_phy_instance *dual_role,
+					enum dual_role_property prop)
+{
+	int rc;
+
+	switch (prop) {
+	case DUAL_ROLE_PROP_MODE:
+	case DUAL_ROLE_PROP_PR:
+	case DUAL_ROLE_PROP_DR:
+		rc = 1;
+		break;
+	default:
+		rc = 0;
+	}
+	return rc;
+}
+
+static int smb5_dr_set_property(struct dual_role_phy_instance *dual_role,
+					enum dual_role_property prop,
+					const unsigned int *val)
+{
+	int rc = 0, current_mode;
+	struct smb_charger *chg = dual_role_get_drvdata(dual_role);
+
+	if (!chg || (chg->connector_type != POWER_SUPPLY_CONNECTOR_TYPEC))
+		return -EINVAL;
+
+	current_mode = smblib_get_typec_mode(chg);
+
+	switch (prop) {
+	case DUAL_ROLE_PROP_MODE:
+		/* Force role */
+		mutex_lock(&chg->dr_lock);
+		if (chg->dr_swap_in_progress) {
+			pr_debug("Already in mode transition skipping request\n");
+			mutex_unlock(&chg->dr_lock);
+			return 0;
+		}
+		switch (*val) {
+		case DUAL_ROLE_PROP_MODE_UFP:
+			if (current_mode == DUAL_ROLE_PROP_MODE_UFP)
+				chg->dr_mode = DUAL_ROLE_PROP_MODE_UFP;
+			else {
+				rc = smblib_force_dr_mode(chg,
+						DUAL_ROLE_PROP_MODE_UFP);
+				if (rc)
+					pr_err("Failed to force UFP mode rc=%d\n",
+									rc);
+				else
+					chg->dr_swap_in_progress = true;
+			}
+			break;
+		case DUAL_ROLE_PROP_MODE_DFP:
+			if (current_mode == DUAL_ROLE_PROP_MODE_DFP)
+				chg->dr_mode = DUAL_ROLE_PROP_MODE_DFP;
+			else {
+				rc = smblib_force_dr_mode(chg,
+						DUAL_ROLE_PROP_MODE_DFP);
+				if (rc)
+					pr_err("Failed to force DFP mode rc=%d\n",
+									rc);
+				else
+					chg->dr_swap_in_progress = true;
+			}
+			break;
+		default:
+			pr_debug("Invalid role(not DFP/UFP) %d\n", *val);
+			rc = -EINVAL;
+		}
+		mutex_unlock(&chg->dr_lock);
+
+		/*
+		 * schedule delayed work to check if device latched to the
+		 * requested mode.
+		 */
+		if (!rc && chg->dr_swap_in_progress) {
+			cancel_delayed_work_sync(&chg->role_reversal_check);
+			vote(chg->awake_votable, DR_SWAP_VOTER, true, 0);
+			schedule_delayed_work(&chg->role_reversal_check,
+				msecs_to_jiffies(ROLE_REVERSAL_DELAY_MS));
+		}
+		break;
+	case DUAL_ROLE_PROP_PR:
+	case DUAL_ROLE_PROP_DR:
+		/* Force role */
+		mutex_lock(&chg->dr_lock);
+		if (chg->dr_swap_in_progress) {
+			pr_debug("Already in mode transition skipping request\n");
+			mutex_unlock(&chg->dr_lock);
+			return 0;
+		}
+		switch (*val) {
+		case DUAL_ROLE_PROP_PR_SNK:
+			if (current_mode == DUAL_ROLE_PROP_MODE_UFP)
+				chg->dr_mode = DUAL_ROLE_PROP_MODE_UFP;
+			else {
+				rc = smblib_force_dr_mode(chg,
+						DUAL_ROLE_PROP_MODE_UFP);
+				if (rc)
+					pr_err("Failed to force UFP mode rc=%d\n",
+									rc);
+				else
+					chg->dr_swap_in_progress = true;
+			}
+			break;
+		case DUAL_ROLE_PROP_PR_SRC:
+			if (current_mode == DUAL_ROLE_PROP_MODE_DFP)
+				chg->dr_mode = DUAL_ROLE_PROP_MODE_DFP;
+			else {
+				rc = smblib_force_dr_mode(chg,
+						DUAL_ROLE_PROP_MODE_DFP);
+				if (rc)
+					pr_err("Failed to force DFP mode rc=%d\n",
+									rc);
+				else
+					chg->dr_swap_in_progress = true;
+			}
+			break;
+		default:
+			pr_debug("Invalid role(not DFP/UFP) %d\n", *val);
+			rc = -EINVAL;
+		}
+		mutex_unlock(&chg->dr_lock);
+
+		/*
+		 * schedule delayed work to check if device latched to the
+		 * requested mode.
+		 */
+		if (!rc && chg->dr_swap_in_progress) {
+			cancel_delayed_work_sync(&chg->role_reversal_check);
+			vote(chg->awake_votable, DR_SWAP_VOTER, true, 0);
+			schedule_delayed_work(&chg->role_reversal_check,
+				msecs_to_jiffies(ROLE_REVERSAL_DELAY_MS));
+		}
+		break;
+	default:
+		pr_debug("Invalid DUAL ROLE request %d\n", prop);
+		rc = -EINVAL;
+	}
+
+	return rc;
+}
+
+static int smb5_dr_get_property(struct dual_role_phy_instance *dual_role,
+					enum dual_role_property prop,
+					unsigned int *val)
+{
+	struct smb_charger *chg = dual_role_get_drvdata(dual_role);
+	unsigned int mode, power_role, data_role;
+
+	if (!chg || (chg->connector_type != POWER_SUPPLY_CONNECTOR_TYPEC))
+		return -EINVAL;
+
+	mode = smblib_get_typec_mode(chg);
+
+	switch (mode) {
+	case DUAL_ROLE_PROP_MODE_UFP:
+		power_role = DUAL_ROLE_PROP_PR_SNK;
+		data_role = DUAL_ROLE_PROP_DR_DEVICE;
+		break;
+	case DUAL_ROLE_PROP_MODE_DFP:
+		power_role = DUAL_ROLE_PROP_PR_SRC;
+		data_role = DUAL_ROLE_PROP_DR_HOST;
+		break;
+	default:
+		power_role = DUAL_ROLE_PROP_PR_NONE;
+		data_role = DUAL_ROLE_PROP_DR_NONE;
+	};
+
+	switch (prop) {
+	case DUAL_ROLE_PROP_SUPPORTED_MODES:
+		*val = chg->dual_role->desc->supported_modes;
+		break;
+	case DUAL_ROLE_PROP_MODE:
+		*val = mode;
+		break;
+	case DUAL_ROLE_PROP_PR:
+		*val = power_role;
+		break;
+	case DUAL_ROLE_PROP_DR:
+		*val = data_role;
+		break;
+	default:
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
+static const struct dual_role_phy_desc dr_desc = {
+	.name = "otg_default",
+	.supported_modes = DUAL_ROLE_SUPPORTED_MODES_DFP_AND_UFP,
+	.properties = smb5_dr_properties,
+	.num_properties = ARRAY_SIZE(smb5_dr_properties),
+	.get_property = smb5_dr_get_property,
+	.set_property = smb5_dr_set_property,
+	.property_is_writeable = smb5_dr_prop_writeable,
+};
+
+static int smb5_init_dual_role_psy(struct smb5 *chip)
+{
+	struct smb_charger *chg = &chip->chg;
+	int rc = 0;
+
+	chg->dual_role = devm_dual_role_instance_register(chg->dev,
+				&dr_desc);
+	if (IS_ERR(chg->dual_role)) {
+		pr_err("Couldn't register dual role\n");
+		rc = PTR_ERR(chg->dual_role);
+	} else {
+		chg->dual_role->drv_data = chg;
+		mutex_init(&chg->dr_lock);
+	}
+
+	return rc;
+}
+/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area end */
 /******************************
  * VBUS REGULATOR REGISTRATION *
  ******************************/
@@ -1671,10 +1898,11 @@ static int smb5_init_vconn_regulator(struct smb5 *chip)
 /***************************
  * HARDWARE INITIALIZATION *
  ***************************/
+//<2018/11/27-JessicaTseng, Qualcomm's patch is to fix current consumption
 static int smb5_configure_typec(struct smb_charger *chg)
 {
 	int rc;
-	u8 val = 0;
+	u8 val = 0, rid_int_src = 0;
 
 	rc = smblib_read(chg, LEGACY_CABLE_STATUS_REG, &val);
 	if (rc < 0) {
@@ -1740,7 +1968,17 @@ static int smb5_configure_typec(struct smb_charger *chg)
 				rc);
 			return rc;
 		}
+		
+		/* Enable Water detection rid source interrupt */ 
+		rid_int_src |= TYPEC_WATER_DETECTION_INT_EN_BIT;
 	}
+	
+ 	/* Disable rid source interrupts which are not required. */ 
+	rc = smblib_write(chg, TYPE_C_INTERRUPT_EN_CFG_2_REG, rid_int_src); 
+	if (rc < 0) { 
+		dev_err(chg->dev, "Couldn't configure Type-C interrupts rc=%d\n", rc); 
+		return rc;
+	}	
 
 	/* Disable TypeC and RID change source interrupts */
 	rc = smblib_write(chg, TYPE_C_INTERRUPT_EN_CFG_2_REG, 0);
@@ -1752,6 +1990,7 @@ static int smb5_configure_typec(struct smb_charger *chg)
 
 	return rc;
 }
+//>2018/11/27-JessicaTseng
 
 static int smb5_configure_micro_usb(struct smb_charger *chg)
 {
@@ -2074,6 +2313,15 @@ static int smb5_init_hw(struct smb5 *chip)
 			return rc;
 		}
 	}
+
+//<2019/08/19-JessicaTseng, Enable AICL rerun periodically
+	/* AICL PERIODIC RERUN ENABLE*/
+	rc = smblib_write(chg, USBIN_AICL_OPTIONS_CFG_REG, 0xD4);
+	if (rc < 0) {
+			dev_err(chg->dev, "Couldn't config RERUN AICL ENABLE rc=%d\n", rc);
+			return rc;
+	}
+//>2019/08/19-JessicaTseng
 
 	/* enable the charging path */
 	rc = vote(chg->chg_disable_votable, DEFAULT_VOTER, false, 0);
@@ -2918,6 +3166,18 @@ static int smb5_probe(struct platform_device *pdev)
 		goto cleanup;
 	}
 
+	/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area start */
+	/*
+	 * Register the Android dual-role class (/sys/class/dual_role_usb/)
+	 */
+	if (chg->connector_type == POWER_SUPPLY_CONNECTOR_TYPEC) {
+		rc = smb5_init_dual_role_psy(chip);
+		if (rc < 0) {
+			pr_err("Couldn't initialize batt psy rc=%d\n", rc);
+			goto cleanup;
+		}
+	}
+	/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area end */
 	rc = smb5_determine_initial_status(chip);
 	if (rc < 0) {
 		pr_err("Couldn't determine initial status rc=%d\n",

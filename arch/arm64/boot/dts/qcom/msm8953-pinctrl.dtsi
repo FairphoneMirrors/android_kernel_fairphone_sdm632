@@ -51,6 +51,8 @@
 				};
 			};
 
+//[FairPhone][Audio][jinjia]=2018.11.21=smart amp porting. -s
+/*
 			uart1_console_active: uart1_console_active {
 				mux {
 					pins = "gpio20", "gpio21";
@@ -76,6 +78,9 @@
 					bias-pull-down;
 				};
 			};
+*/
+//[FairPhone][Audio][jinjia]=2018.11.21=smart amp porting. -e
+
 		};
 		cci {
 			cci0_active: cci0_active {
@@ -118,7 +123,9 @@
 
 				config {
 					pins = "gpio31", "gpio32";
-					drive-strength = <2>; /* 2 MA */
+				/*<2019/05/10-Yuting Shih.[FAIRPHONE][MISC][COMMON][CAMERA][][]Pull up the strength level when camera cannot detected sometimes */
+					drive-strength = <4>; /* 2 MA */
+				/*>2019/05/10-Yuting Shih.[FAIRPHONE][MISC][COMMON][CAMERA][][] */
 					bias-disable; /* No PULL */
 				};
 			};
@@ -229,12 +236,12 @@
 		cam_sensor_rear_vana: cam_sensor_rear_vdig {
 			/* VDIG */
 			mux {
-				pins = "gpio134";
+				pins = "gpio128";
 				function = "gpio";
 			};
 
 			config {
-				pins = "gpio134";
+				pins = "gpio128";
 				bias-disable; /* No PULL */
 				drive-strength = <2>; /* 2 MA */
 			};
@@ -243,12 +250,12 @@
 		cam_sensor_rear_vana_sleep: cam_sensor_rear_vdig_sleep {
 			/* VDIG */
 			mux {
-				pins = "gpio134";
+				pins = "gpio128";
 				function = "gpio";
 			};
 
 			config {
-				pins = "gpio134";
+				pins = "gpio128";
 				bias-disable; /* No PULL */
 				drive-strength = <2>; /* 2 MA */
 			};
@@ -265,7 +272,9 @@
 			config {
 				pins = "gpio27";
 				bias-disable; /* No PULL */
-				drive-strength = <2>; /* 2 MA */
+			/*<2019/05/10-Yuting Shih.[FAIRPHONE][MISC][COMMON][CAMERA][][]Pull up the MIPI CLK strength level when camera cannot detected sometimes */
+				drive-strength = <8>; /* <2>; */ /* 2 MA */
+			/*>2019/05/10-Yuting Shih.[FAIRPHONE][MISC][COMMON][CAMERA][][] */
 			};
 		};
 
@@ -342,15 +351,98 @@
 			};
 		};
 
-		cam_sensor_front1_default: cam_sensor_front1_default {
-			/* RESET, STANDBY */
+/*<2018/10/18-Yuting Shih.[FAIRPHONE][MISC][COMMON][CAMERA][][]Modified for new front camera device driver S5K4H7YX. */
+/*<2018/11/14-Yuting Shih.[FAIRPHONE][MISC][COMMON][CAMERA][][]VOI control pin.PCBA EP0 is GPIO123;EP1 and above is GPIO130 */
+		cam_sensor_front1_vio_default: cam_sensor_front1_vio_default {
+			/* CAM IOVDD */
 			mux {
-				pins = "gpio129", "gpio130";
+			#if 1
+				pins = "gpio130";
+			#else /* PCBA EP0 */
+				pins = "gpio123";
+			#endif
 				function = "gpio";
 			};
 
 			config {
+			#if 1
+				pins = "gpio130";
+			#else /* PCBA EP0 */
+				pins = "gpio123";
+			#endif
+				bias-disable; /* No PULL */
+				drive-strength = <2>; /* 2 MA */
+			};
+		};
+
+		cam_sensor_front1_vio_sleep: cam_sensor_front1_vio_sleep {
+			/* CAM IOVDD */
+			mux {
+			#if 1
+				pins = "gpio130";
+			#else /* PCBA EP0 */
+				pins = "gpio123";
+			#endif
+				function = "gpio";
+			};
+
+			config {
+			#if 1
+				pins = "gpio130";
+			#else /* PCBA EP0 */
+				pins = "gpio123";
+			#endif
+				bias-disable; /* No PULL */
+				drive-strength = <2>; /* 2 MA */
+			};
+		};
+/*>2018/11/14-Yuting Shih.[FAIRPHONE][MISC][COMMON][CAMERA][][] */
+
+		cam_sensor_front1_vdig_default: cam_sensor_front1_vdig_default {
+			/* CAM DVDD */
+			mux {
+				pins = "gpio46";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio46";
+				bias-disable; /* No PULL */
+				drive-strength = <2>; /* 2 MA */
+			};
+		};
+
+		cam_sensor_front1_vdig_sleep: cam_sensor_front1_vdig_sleep {
+			/* CAM DVDD */
+			mux {
+				pins = "gpio46";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio46";
+				bias-disable; /* No PULL */
+				drive-strength = <2>; /* 2 MA */
+			};
+		};
+
+		cam_sensor_front1_default: cam_sensor_front1_default {
+			/* RESET, STANDBY */
+			mux {
+			#if 1
+				pins = "gpio129";   /* Only Reset,Non-standby GPIO */
+			#else /* Qualcomm default */
 				pins = "gpio129", "gpio130";
+			#endif
+				function = "gpio";
+			};
+
+			config {
+			#if 1
+				pins = "gpio129";   /* Only Reset,Non-standby GPIO */
+			#else /* Qualcomm default */
+				pins = "gpio129", "gpio130";
+			#endif
 				bias-disable; /* No PULL */
 				drive-strength = <2>; /* 2 MA */
 			};
@@ -359,16 +451,25 @@
 		cam_sensor_front1_sleep: cam_sensor_front1_sleep {
 			/* RESET, STANDBY */
 			mux {
+			#if 1
+				pins = "gpio129";   /* Only Reset,Non-standby GPIO */
+			#else /* Qualcomm default */
 				pins = "gpio129", "gpio130";
+			#endif
 				function = "gpio";
 			};
 
 			config {
+			#if 1
+				pins = "gpio129";   /* Only Reset,Non-standby GPIO */
+			#else /* Qualcomm default */
 				pins = "gpio129", "gpio130";
+			#endif
 				bias-disable; /* No PULL */
 				drive-strength = <2>; /* 2 MA */
 			};
 		};
+/*>2018/10/18-Yuting Shih.[FAIRPHONE][MISC][COMMON][CAMERA][][]. */
 
 		pmx_adv7533_int: pmx_adv7533_int {
 			adv7533_int_active: adv7533_int_active {
@@ -399,15 +500,73 @@
 
 		};
 
-		pmx_mdss: pmx_mdss {
-			mdss_dsi_active: mdss_dsi_active {
+// [FairPhone][Fingerprint][akenhsu] Add Fingerprint driver codes of Elan 20181108 BEGIN
+		fps {
+			fps_int_active: fps_int_active {
 				mux {
-					pins = "gpio61", "gpio59";
+					pins = "gpio48";
 					function = "gpio";
 				};
 
 				config {
-					pins = "gpio61", "gpio59";
+					pins = "gpio48";
+					drive-strength = <8>;
+					bias-pull-up;
+				};
+			};
+
+			fps_int_suspend: fps_int_suspend {
+				mux {
+					pins = "gpio48";
+					function = "gpio";
+				};
+
+			config {
+					pins = "gpio48";
+					drive-strength = <2>;
+					bias-pull-down;
+				};
+			};
+
+			fps_reset_active: fps_reset_active {
+				mux {
+					pins = "gpio140";
+					function = "gpio";
+				};
+
+				config {
+					pins = "gpio140";
+					drive-strength = <8>;
+					bias-pull-up;
+				};
+			};
+
+			fps_reset_suspend1: fps_reset_suspend1 {
+				mux {
+					pins = "gpio140";
+					function = "gpio";
+				};
+
+				config {
+					pins = "gpio140";
+					drive-strength = <2>;
+					bias-pull-down;
+				};
+			};
+		};
+// [FairPhone][Fingerprint][akenhsu] 20181108 END
+
+		pmx_mdss: pmx_mdss {
+			
+			/*[Arima_8901][Jialong] lcm driver porting begin*/
+			mdss_dsi_active: mdss_dsi_active {
+				mux {
+					pins = "gpio61", "gpio96";
+					function = "gpio";
+				};
+
+				config {
+					pins = "gpio61", "gpio96";
 					drive-strength = <8>; /* 8 mA */
 					bias-disable = <0>; /* no pull */
 					output-high;
@@ -416,16 +575,19 @@
 
 			mdss_dsi_suspend: mdss_dsi_suspend {
 				mux {
-					pins = "gpio61", "gpio59";
+					pins = "gpio61", "gpio96";
 					function = "gpio";
 				};
 
 				config {
-					pins = "gpio61", "gpio59";
+					pins = "gpio61", "gpio96";
 					drive-strength = <2>; /* 2 mA */
 					bias-pull-down; /* pull down */
+					//output-high;
 				};
 			};
+			/*[Arima_8901][Jialong] lcm driver porting end*/
+			
 			mdss_dsi_gpio: mdss_dsi_gpio {
 				mux {
 					pins = "gpio141";
@@ -628,6 +790,8 @@
 			};
 		};
 
+//[FairPhone][Audio][jinjia]=2018.11.21=smart amp porting. -s
+/*
 		blsp2_uart1_active: blsp2_uart1_active {
 			mux {
 				pins = "gpio20", "gpio21", "gpio22", "gpio23";
@@ -653,6 +817,8 @@
 				bias-disable;
 			};
 		};
+*/
+//[FairPhone][Audio][jinjia]=2018.11.21=smart amp porting. -e
 
 		/* SDC pin type */
 		sdc1_clk_on: sdc1_clk_on {
@@ -908,6 +1074,38 @@
 			};
 		};
 
+//[FairPhone][Audio][jinjia]=2018.11.21=smart amp porting. -s
+		i2c_6 {
+			i2c_6_active: i2c_6_active {
+				/* active state */
+				mux {
+					pins = "gpio22", "gpio23";
+					function = "blsp_i2c6";
+				};
+
+				config {
+					pins = "gpio22", "gpio23";
+					drive-strength = <2>;
+					bias-disable;
+				};
+			};
+
+			i2c_6_sleep: i2c_6_sleep {
+				/* suspended state */
+				mux {
+					pins = "gpio22", "gpio23";
+					function = "gpio";
+				};
+
+				config {
+					pins = "gpio22", "gpio23";
+					drive-strength = <2>;
+					bias-disable;
+				};
+			};
+		};
+//[FairPhone][Audio][jinjia]=2018.11.21=smart amp porting. -e
+
 		nfc {
 			nfc_int_active: nfc_int_active {
 				/* active state */
@@ -939,17 +1137,18 @@
 				};
 			};
 
+/*<<2019-01-29-Michael Lin-[FairPhone][NFC]Reassign ESE Enable gpio in case of collision*/
 			nfc_disable_active: nfc_disable_active {
 				/* active state */
 				mux {
 					/* 16: NFC ENABLE 62: FW DNLD */
-					/* 141: ESE Enable */
-					pins = "gpio16", "gpio62", "gpio141";
+					/* 134: ESE Enable */
+					pins = "gpio16", "gpio62", "gpio134";
 					function = "gpio";
 				};
 
 				config {
-					pins = "gpio16", "gpio62", "gpio141";
+					pins = "gpio16", "gpio62", "gpio134";
 					drive-strength = <2>; /* 2 MA */
 					bias-pull-up;
 				};
@@ -959,18 +1158,19 @@
 				/* sleep state */
 				mux {
 					/* 16: NFC ENABLE 62: FW DNLD */
-					/* 141: ESE Enable */
-					pins = "gpio16", "gpio62", "gpio141";
+					/* 134: ESE Enable */
+					pins = "gpio16", "gpio62", "gpio134";
 					function = "gpio";
 				};
 
 				config {
-					pins = "gpio16", "gpio62", "gpio141";
+					pins = "gpio16", "gpio62", "gpio134";
 					drive-strength = <2>; /* 2 MA */
 					bias-disable;
 				};
 			};
 		};
+/*>>2019-01-29-Michael Lin-[FairPhone][NFC]Reassign ESE Enable gpio in case of collision*/
 
 		wcnss_pmux_5wire {
 			/* Active configuration of bus pins */
@@ -1198,6 +1398,8 @@
 			};
 		};
 
+//[FairPhone][Audio][jinjia]=2019.02.01=Remove the config of us-eu-gpios. -s
+/*
 		cross-conn-det {
 			cross_conn_det_act: lines_on {
 				mux {
@@ -1226,6 +1428,8 @@
 				};
 			};
 		};
+*/
+//[FairPhone][Audio][jinjia]=2019.02.01=Remove the config of us-eu-gpios. -e
 
 		/* WSA VI sense */
 		wsa-vi {
@@ -1260,12 +1464,12 @@
 		wsa_reset {
 			wsa_reset_on: wsa_reset_on {
 				mux {
-					pins = "gpio96";
+					//pins = "gpio96";
 					function = "gpio";
 				};
 
 				config {
-					pins = "gpio96";
+					//pins = "gpio96";
 					drive-strength = <2>; /* 2 MA */
 					output-high;
 				};
@@ -1273,14 +1477,14 @@
 
 			wsa_reset_off: wsa_reset_off {
 				mux {
-					pins = "gpio96";
+					//pins = "gpio96";
 					function = "gpio";
 				};
 
 				config {
-					pins = "gpio96";
+					//pins = "gpio96";
 					drive-strength = <2>; /* 2 MA */
-					output-low;
+					output-high;
 				};
 			};
 		};
@@ -1315,27 +1519,28 @@
 			};
 		};
 
+//[FairPhone][Audio][jinjia]=2018.11.21=smart amp porting. -s
 		pri-tlmm-lines {
 			pri_tlmm_lines_act: pri_tlmm_lines_act {
 				mux {
-					pins = "gpio91", "gpio93";
+					pins = "gpio91", "gpio93", "gpio88";
 					function = "pri_mi2s";
 				};
 
 				config {
-					pins = "gpio91", "gpio93";
+					pins = "gpio91", "gpio93", "gpio88";
 					drive-strength = <8>;
 				};
 			};
 
 			pri_tlmm_lines_sus: pri_tlmm_lines_sus {
 				mux {
-					pins = "gpio91", "gpio93";
+					pins = "gpio91", "gpio93", "gpio88";
 					function = "pri_mi2s";
 				};
 
 				config {
-					pins = "gpio91", "gpio93";
+					pins = "gpio91", "gpio93", "gpio88";
 					drive-strength = <2>;
 					bias-pull-down;
 				};
@@ -1368,126 +1573,69 @@
 				};
 			};
 		};
+//[FairPhone][Audio][jinjia]=2018.11.21=smart amp porting. -e
 
-		spi3 {
-			spi3_default: spi3_default {
-				/* active state */
-				mux {
-					/* MOSI, MISO, CLK */
-					pins = "gpio8", "gpio9", "gpio11";
-					function = "blsp_spi3";
-				};
+/*[Arima_8901][allen_yu] Himax83112-A touch driver porting (Fairphone) 20181102 begin*/
+//		spi3 {
+//			spi3_default: spi3_default {
+//				/* active state */
+//				mux {
+//					/* MOSI, MISO, CLK */
+//					pins = "gpio8", "gpio9", "gpio11";
+//					function = "blsp_spi3";
+//				};
 
-				config {
-					pins = "gpio8", "gpio9", "gpio11";
-					drive-strength = <12>; /* 12 MA */
-					bias-disable = <0>; /* No PULL */
-				};
-			};
+//				config {
+//					pins = "gpio8", "gpio9", "gpio11";
+//					drive-strength = <12>; /* 12 MA */
+//					bias-disable = <0>; /* No PULL */
+//				};
+//			};
 
-			spi3_sleep: spi3_sleep {
-				/* suspended state */
-				mux {
-					/* MOSI, MISO, CLK */
-					pins = "gpio8", "gpio9", "gpio11";
-					function = "gpio";
-				};
+//			spi3_sleep: spi3_sleep {
+//				/* suspended state */
+//				mux {
+//					/* MOSI, MISO, CLK */
+//					pins = "gpio8", "gpio9", "gpio11";
+//					function = "gpio";
+//				};
 
-				config {
-					pins = "gpio8", "gpio9", "gpio11";
-					drive-strength = <2>; /* 2 MA */
-					bias-pull-down; /* PULL Down */
-				};
-			};
+//				config {
+//					pins = "gpio8", "gpio9", "gpio11";
+//					drive-strength = <2>; /* 2 MA */
+//					bias-pull-down; /* PULL Down */
+//				};
+//			};
 
-			spi3_cs0_active: cs0_active {
-				/* CS */
-				mux {
-					pins = "gpio10";
-					function = "blsp_spi3";
-				};
+//			spi3_cs0_active: cs0_active {
+//				/* CS */
+//				mux {
+//					pins = "gpio10";
+//					function = "blsp_spi3";
+//				};
 
-				config {
-					pins = "gpio10";
-					drive-strength = <2>;
-					bias-disable = <0>;
-				};
-			};
+//				config {
+//					pins = "gpio10";
+//					drive-strength = <2>;
+//					bias-disable = <0>;
+//				};
+//			};
 
-			spi3_cs0_sleep: cs0_sleep {
-				/* CS */
-				mux {
-					pins = "gpio10";
-					function = "gpio";
-				};
+//			spi3_cs0_sleep: cs0_sleep {
+//				/* CS */
+//				mux {
+//					pins = "gpio10";
+//					function = "gpio";
+//				};
 
-				config {
-					pins = "gpio10";
-					drive-strength = <2>;
-					bias-disable = <0>;
-				};
-			};
-		};
-
-		spi6 {
-			spi6_default: spi6_default {
-				/* active state */
-				mux {
-					/* MOSI, MISO, CLK */
-					pins = "gpio20", "gpio21", "gpio23";
-					function = "blsp_spi6";
-				};
-
-				config {
-					pins = "gpio20", "gpio21", "gpio23";
-					drive-strength = <12>; /* 12 MA */
-					bias-disable = <0>; /* No PULL */
-				};
-			};
-
-			spi6_sleep: spi6_sleep {
-				/* suspended state */
-				mux {
-					/* MOSI, MISO, CLK */
-					pins = "gpio20", "gpio21", "gpio23";
-					function = "gpio";
-				};
-
-				config {
-					pins = "gpio20", "gpio21", "gpio23";
-					drive-strength = <2>; /* 2 MA */
-					bias-pull-down; /* PULL Down */
-				};
-			};
-
-			spi6_cs0_active: cs0_active {
-				/* CS */
-				mux {
-					pins = "gpio22";
-					function = "blsp_spi6";
-				};
-
-				config {
-					pins = "gpio22";
-					drive-strength = <2>;
-					bias-disable = <0>;
-				};
-			};
-
-			spi6_cs0_sleep: cs0_sleep {
-				/* CS */
-				mux {
-					pins = "gpio22";
-					function = "gpio";
-				};
-
-				config {
-					pins = "gpio22";
-					drive-strength = <2>;
-					bias-disable = <0>;
-				};
-			};
-		};
+//				config {
+//					pins = "gpio10";
+//					drive-strength = <2>;
+//					bias-disable = <0>;
+//				};
+//			};
+//		};
+/*[Arima_8901][allen_yu] 20181102 end*/
 
 		/* add pingrp for touchscreen */
 		ts_int_default: ts_int_default {

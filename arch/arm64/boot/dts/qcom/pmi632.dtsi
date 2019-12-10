@@ -314,7 +314,10 @@
 
 			qcom,pmic-revid = <&pmi632_revid>;
 			dpdm-supply = <&qusb_phy>;
-			qcom,auto-recharge-soc = <98>;
+//<--[Fairphone][Charging][JasonHsing] Re-charge condition for battery to 4.3V 20190103 BEGIN -
+			qcom,auto-recharge-vbat-mv = <4300>;
+			//qcom,auto-recharge-soc = <98>;
+//-->[Fairphone][Charging][JasonHsing] Re-charge condition for battery to 4.3V 20190103 END -
 			qcom,chg-vadc = <&pmi632_vadc>;
 			qcom,flash-disable-soc = <10>;
 			qcom,sw-jeita-enable;
@@ -323,9 +326,11 @@
 			qcom,hw-connector-mitigation;
 			qcom,connector-internal-pull-kohm = <100>;
 
+//<--[FairPhone][Charging][JasonHsing] Add condition of charging current for thermal-mitigation 20190327 BEGIN --
 			qcom,thermal-mitigation
-				= <3000000 2500000 2000000 1500000
-					1000000 500000>;
+				= <2000000 1500000 1000000 500000
+					500000 500000>;
+//-->[FairPhone][Charging][JasonHsing] Add condition of charging current for thermal-mitigation 20190327 END --
 
 			qcom,chgr@1000 {
 				reg = <0x1000 0x100>;
@@ -484,8 +489,10 @@
 			#size-cells = <1>;
 
 			qcom,qg-iterm-ma = <100>;
-			qcom,hold-soc-while-full;
-			qcom,linearize-soc;
+//<--[Fairphone][Charging][JasonHsing] Re-charge condition for battery to 4.3V 20190103 BEGIN -
+			//qcom,hold-soc-while-full;
+			//qcom,linearize-soc;
+//-->[Fairphone][Charging][JasonHsing] Re-charge condition for battery to 4.3V 20190103 END -
 			qcom,qg-vadc = <&pmi632_vadc>;
 			qcom,pmic-revid = <&pmi632_revid>;
 
@@ -674,7 +681,7 @@
 				qcom,max-current = <1500>;
 				qcom,default-led-trigger = "flash0_trigger";
 				qcom,id = <0>;
-				qcom,current-ma = <1000>;
+				qcom,current-ma = <1400>; // [8901][FlashLED][akenhsu] Modify the current setting since tuning team required 20190510
 				qcom,duration-ms = <1280>;
 				qcom,ires-ua = <12500>;
 				qcom,hdrm-voltage-mv = <400>;
@@ -687,7 +694,7 @@
 				qcom,max-current = <1500>;
 				qcom,default-led-trigger = "flash1_trigger";
 				qcom,id = <1>;
-				qcom,current-ma = <1000>;
+				qcom,current-ma = <1400>; // [8901][FlashLED][akenhsu] Modify the current setting since tuning team required 20190510
 				qcom,duration-ms = <1280>;
 				qcom,ires-ua = <12500>;
 				qcom,hdrm-voltage-mv = <400>;

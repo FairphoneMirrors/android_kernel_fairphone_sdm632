@@ -41,7 +41,9 @@
 		qcom,nq-ven = <&tlmm 16 0x00>;
 		qcom,nq-firm = <&tlmm 62 0x00>;
 		qcom,nq-clkreq = <&pm8953_gpios 2 0x00>;
-		qcom,nq-esepwr = <&tlmm 141 0x00>;
+/*<<2019-01-29-Michael Lin-[FairPhone][NFC]Reassign ESE Enable gpio in case of collision*/                
+		qcom,nq-esepwr = <&tlmm 134 0x00>;
+/*>>2019-01-29-Michael Lin-[FairPhone][NFC]Reassign ESE Enable gpio in case of collision*/                
 		interrupt-parent = <&tlmm>;
 		qcom,clk-src = "BBCLK2";
 		interrupts = <17 0>;
@@ -54,6 +56,21 @@
 		clock-names = "ref_clk";
 	};
 };
+
+//[FairPhone][Audio][jinjia]=2018.11.21=smart amp porting. -s
+&i2c_6 { /* BLSP2 QUP2 (smart amp) */
+	    status = "ok";
+	    /* AWINIC AW8898 Smart PA */
+	    aw8898_smartpa@34{
+	        compatible = "awinic,aw8898_smartpa";
+	        reg = <0x34>;
+	        reset-gpio = <&tlmm 21 0>;
+	        irq-gpio = <&tlmm 20 0>;
+	        status = "okay";
+	    };
+	    /* AWINIC AW8898 Smart PA End */
+};
+//[FairPhone][Audio][jinjia]=2018.11.21=smart amp porting. -e
 
 &sdhc_1 {
 	/* device core power supply */
@@ -123,16 +140,27 @@
 	hw-config = "single_dsi";
 };
 
+/*[Arima_8901][Jialong] lcm driver porting begin*/
 &mdss_dsi0 {
+	#if 1
+	//[Arima][8901][JialongJhan] Command mode 20190516 Start
+	qcom,dsi-pref-prim-pan = <&dsi_djn_hx83112b_1080p_cmd>;
+	//qcom,dsi-pref-prim-pan = <&dsi_hx83112b_truly_1080p_video>;
+	//[Arima][8901][JialongJhan] Command mode 20190516 End
+	#else
 	qcom,dsi-pref-prim-pan = <&dsi_truly_1080_vid>;
+	#endif
 	pinctrl-names = "mdss_default", "mdss_sleep";
 	pinctrl-0 = <&mdss_dsi_active &mdss_te_active>;
 	pinctrl-1 = <&mdss_dsi_suspend &mdss_te_suspend>;
 
 	qcom,platform-te-gpio = <&tlmm 24 0>;
-		qcom,platform-reset-gpio = <&tlmm 61 0>;
-	qcom,platform-bklight-en-gpio = <&tlmm 59 0>;
+	qcom,platform-reset-gpio = <&tlmm 61 0>;
+	qcom,platform-bklight-en-gpio = <&tlmm 96 0>;
+	//not config yet...
+	//qcom,platform-id-gpio = <&tlmm 59 0>;
 };
+/*[Arima_8901][Jialong] lcm driver porting end*/
 
 &mdss_dsi1 {
 	status = "disabled";
@@ -146,6 +174,22 @@
 	qcom,platform-reset-gpio = <&tlmm 61 0>;
 	qcom,platform-bklight-en-gpio = <&tlmm 59 0>;
 };
+
+/*[Arima_8901][Jialong] lcm driver porting begin*/
+&dsi_hx83112b_truly_1080p_video {
+	qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_dcs";
+	qcom,mdss-dsi-bl-min-level = <1>;
+	qcom,mdss-dsi-bl-max-level = <4095>;
+	qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
+};
+
+&dsi_djn_hx83112b_1080p_cmd {
+	qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_dcs";
+	qcom,mdss-dsi-bl-min-level = <1>;
+	qcom,mdss-dsi-bl-max-level = <4095>;
+	qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
+};
+/*[Arima_8901][Jialong] lcm driver porting end*/
 
 &dsi_truly_1080_vid {
 	qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
@@ -205,6 +249,15 @@
 			gpio-key,wakeup;
 		};
 	};
+
+	//[FairPhone][JasonY] SAR sensor driver porting -BEGIN
+	sar_sensor {
+		compatible = "sar_sensor";
+		interrupt-parent = <&tlmm>;
+		interrupts = <13 0x0>;
+		jt06,irq-gpio = <&tlmm 13 0x2008>;
+	};
+	//[FairPhone][JasonY] SAR sensor driver porting -END
 };
 
 &thermal_zones {

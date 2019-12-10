@@ -1236,6 +1236,38 @@ static int smblib_usb_irq_enable_vote_callback(struct votable *votable,
 	return 0;
 }
 
+//<--[FairPhone][Charging][JasonHsing] Setting jeita fv re-charge voltage for warm temp BEGIN --
+static int smblib_jeita_rechg_voltage_vote_callback(struct votable *votable, void *data,
+			int voltage, const char *client)
+{
+	struct smb_charger *chg = data;
+	int rc = 0;
+	u32 temp = VBAT_TO_VRAW_ADC((voltage/1000));
+
+	temp = ((temp & 0xFF00) >> 8) | ((temp & 0xFF) << 8);
+	rc = smblib_batch_write(chg,
+		CHGR_ADC_RECHARGE_THRESHOLD_MSB_REG, (u8 *)&temp, 2);
+	if (rc < 0) {
+		dev_err(chg->dev, "Couldn't configure ADC_RECHARGE_THRESHOLD REG rc=%d\n",
+			rc);
+		return rc;
+	}
+	/* Program the sample count for VBAT based recharge to 3 */
+	rc = smblib_masked_write(chg, CHGR_NO_SAMPLE_TERM_RCHG_CFG_REG,
+				NO_OF_SAMPLE_FOR_RCHG,
+				2 << NO_OF_SAMPLE_FOR_RCHG_SHIFT);
+	if (rc < 0) {
+		dev_err(chg->dev, "Couldn't configure CHGR_NO_SAMPLE_FOR_TERM_RCHG_CFG rc=%d\n",
+			rc);
+		return rc;
+	}
+
+	dev_err(chg->dev, "jeita_rechg_voltage =%d\n", voltage);
+
+	return rc;
+}
+//-->[FairPhone][Charging][JasonHsing] Setting jeita fv re-charge voltage for warm temp END --
+
 /*******************
  * VCONN REGULATOR *
  * *****************/
@@ -2157,6 +2189,38 @@ static int smblib_get_prop_dfp_mode(struct smb_charger *chg)
 
 	return POWER_SUPPLY_TYPEC_NONE;
 }
+
+/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area start */
+int smblib_get_typec_mode(struct smb_charger *chg)
+{
+	int rc;
+	u8 stat = 0;
+
+	rc = smblib_read(chg, TYPE_C_STATE_MACHINE_STATUS_REG, &stat);
+	if (rc < 0) {
+		smblib_err(chg, "Couldn't read TYPE_C_STATE_MACHINE_STATUS_REG rc=%d\n",
+			rc);
+	}
+	smblib_dbg(chg, PR_REGISTER, "TYPE_C_STATE_MACHINE_STATUS_REG = 0x%02x\n",
+			stat);
+
+	if (stat & TYPEC_ATTACH_DETACH_STATE_BIT) {
+		rc = smblib_read(chg, TYPE_C_MISC_STATUS_REG, &stat);
+		if (rc < 0) {
+			smblib_err(chg, "Couldn't read TYPE_C_MISC_STATUS_REG rc=%d\n",
+				rc);
+			return DUAL_ROLE_PROP_MODE_NONE;
+		}
+		smblib_dbg(chg, PR_REGISTER, "TYPE_C_MISC_STATUS_REG = 0x%02x\n",
+				stat);
+		if (stat & SNK_SRC_MODE_BIT)
+			return DUAL_ROLE_PROP_MODE_DFP;
+		else
+			return DUAL_ROLE_PROP_MODE_UFP;
+	} else
+		return DUAL_ROLE_PROP_MODE_NONE;
+}
+/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area end */
 
 static int smblib_get_prop_typec_mode(struct smb_charger *chg)
 {
@@ -3143,6 +3207,12 @@ void smblib_usb_plugin_locked(struct smb_charger *chg)
 		smblib_micro_usb_plugin(chg, vbus_rising);
 
 	power_supply_changed(chg->usb_psy);
+	/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area start */
+		if (chg->dual_role)
+		{
+		  dual_role_instance_changed(chg->dual_role);
+		}
+	/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area end */
 	smblib_dbg(chg, PR_INTERRUPT, "IRQ: usbin-plugin %s\n",
 					vbus_rising ? "attached" : "detached");
 }
@@ -3432,9 +3502,14 @@ irqreturn_t usb_source_change_irq_handler(int irq, void *data)
 		(bool)(stat & SLOW_PLUGIN_TIMEOUT_BIT));
 
 	smblib_hvdcp_adaptive_voltage_change(chg);
-
+	
 	power_supply_changed(chg->usb_psy);
-
+    /* [20190422][TracyChui]Fixed USB preferences can not change in notifications area start */
+	if (chg->dual_role)
+	{
+		dual_role_instance_changed(chg->dual_role);
+	}
+	/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area end */
 	rc = smblib_read(chg, APSD_STATUS_REG, &stat);
 	if (rc < 0) {
 		smblib_err(chg, "Couldn't read APSD_STATUS rc=%d\n", rc);
@@ -3662,7 +3737,12 @@ irqreturn_t typec_state_change_irq_handler(int irq, void *data)
 				smblib_typec_mode_name[chg->typec_mode]);
 
 	power_supply_changed(chg->usb_psy);
-
+	/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area start */
+	if (chg->dual_role)
+	{
+		dual_role_instance_changed(chg->dual_role);
+	}
+	/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area end */
 	return IRQ_HANDLED;
 }
 
@@ -3715,10 +3795,21 @@ irqreturn_t typec_attach_detach_irq_handler(int irq, void *data)
 			chg->sink_src_mode = UNATTACHED_MODE;
 			chg->early_usb_attach = false;
 		}
+	/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area start */
+		if (!chg->dr_swap_in_progress)
+		{
+			smblib_force_dr_mode(chg, DUAL_ROLE_PROP_MODE_NONE);
+		}
+	/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area end */
 	}
 
 	power_supply_changed(chg->usb_psy);
-
+	/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area start */
+	if (chg->dual_role)
+	{
+		dual_role_instance_changed(chg->dual_role);
+	}	
+	/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area end */
 	return IRQ_HANDLED;
 }
 
@@ -4332,6 +4423,121 @@ out:
 	chg->jeita_configured = true;
 }
 
+/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area start */
+/* requested mode */
+static char *dual_mode_text[] = {
+	"ufp", "dfp", "none"
+};
+
+int smblib_force_dr_mode(struct smb_charger *chg, int mode)
+{
+	int rc = 0;
+
+	switch (mode) {
+	case DUAL_ROLE_PROP_MODE_UFP:
+		rc = smblib_masked_write(chg, TYPE_C_MODE_CFG_REG,
+				TYPEC_POWER_ROLE_CMD_MASK | EN_TRY_SNK_BIT,
+				EN_SNK_ONLY_BIT);
+		if (rc < 0) {
+			dev_err(chg->dev,
+				"Couldn't enable snk rc=%d\n", rc);
+			return rc;
+		}
+		rc = smblib_masked_write(chg, DCDC_CMD_OTG_REG, OTG_EN_BIT, 0);
+		if (rc < 0) {
+			smblib_err(chg, "Couldn't disable OTG rc=%d\n", rc);
+			return rc;
+		}
+		break;
+	case DUAL_ROLE_PROP_MODE_DFP:
+		rc = smblib_masked_write(chg, TYPE_C_MODE_CFG_REG,
+				TYPEC_POWER_ROLE_CMD_MASK | EN_TRY_SNK_BIT,
+				EN_SRC_ONLY_BIT);
+		if (rc < 0) {
+			dev_err(chg->dev,
+				"Couldn't enable src rc=%d\n", rc);
+			return rc;
+		}
+		rc = smblib_masked_write(chg, DCDC_CMD_OTG_REG, OTG_EN_BIT,
+							OTG_EN_BIT);
+		if (rc < 0) {
+			smblib_err(chg, "Couldn't enable OTG rc=%d\n", rc);
+			return rc;
+		}
+		break;
+	case DUAL_ROLE_PROP_MODE_NONE:
+		rc = smblib_masked_write(chg, TYPE_C_MODE_CFG_REG,
+				TYPEC_POWER_ROLE_CMD_MASK | EN_TRY_SNK_BIT,
+				EN_TRY_SNK_BIT);
+		if (rc < 0) {
+			dev_err(chg->dev,
+				"Couldn't enable try.snk rc=%d\n", rc);
+			return rc;
+		}
+		rc = smblib_masked_write(chg, DCDC_CMD_OTG_REG, OTG_EN_BIT, 0);
+		if (rc < 0) {
+			smblib_err(chg, "Couldn't disable OTG rc=%d\n", rc);
+			return rc;
+		}
+		break;
+	default:
+		smblib_err(chg, "power role %d not supported\n", mode);
+		return -EINVAL;
+}
+
+	if (chg->dr_mode != mode) {
+		chg->dr_mode = mode;
+		pr_debug("Forced mode: %s\n",
+					dual_mode_text[chg->dr_mode]);
+	}
+
+	return rc;
+}
+
+static void smblib_dr_role_check_work(struct work_struct *work)
+{
+	struct smb_charger *chg = container_of(work, struct smb_charger,
+						role_reversal_check.work);
+	int rc, typec_mode;
+	struct smb_irq_data irq_data = {chg, "determine-typec-status"};
+
+	typec_mode = smblib_get_typec_mode(chg);
+	mutex_lock(&chg->dr_lock);
+
+	switch (chg->dr_mode) {
+	case DUAL_ROLE_PROP_MODE_UFP:
+		if (typec_mode != DUAL_ROLE_PROP_MODE_UFP) {
+			pr_debug("Role-reversal not latched to UFP in %d msec resetting to DRP mode\n",
+					ROLE_REVERSAL_DELAY_MS);
+			rc = smblib_force_dr_mode(chg,
+						DUAL_ROLE_PROP_MODE_NONE);
+			if (rc)
+				pr_err("Failed to set DRP mode rc=%d\n", rc);
+		}
+		chg->dr_swap_in_progress = false;
+		break;
+	case DUAL_ROLE_PROP_MODE_DFP:
+		if (typec_mode != DUAL_ROLE_PROP_MODE_DFP) {
+			pr_debug("Role-reversal not latched to DFP in %d msec resetting to DRP mode\n",
+					ROLE_REVERSAL_DELAY_MS);
+			rc = smblib_force_dr_mode(chg,
+						DUAL_ROLE_PROP_MODE_NONE);
+			if (rc)
+				pr_err("Failed to set DRP mode rc=%d\n", rc);
+		} else if (chg->sink_src_mode != SRC_MODE) {
+			typec_attach_detach_irq_handler(0, &irq_data);
+		}
+		chg->dr_swap_in_progress = false;
+		break;
+	default:
+		pr_debug("Already in DRP mode\n");
+		break;
+	}
+	mutex_unlock(&chg->dr_lock);
+	vote(chg->awake_votable, DR_SWAP_VOTER, false, 0);
+}
+/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area end */
+
 static int smblib_create_votables(struct smb_charger *chg)
 {
 	int rc = 0;
@@ -4412,6 +4618,16 @@ static int smblib_create_votables(struct smb_charger *chg)
 		return rc;
 	}
 
+//<--[FairPhone][Charging][JasonHsing] Setting jeita fv re-charge voltage for warm temp BEGIN --
+	chg->rechg_vol_votable = create_votable("RECHG_VOL", VOTE_MIN,
+					smblib_jeita_rechg_voltage_vote_callback,
+					chg);
+	if (IS_ERR(chg->rechg_vol_votable)) {
+		rc = PTR_ERR(chg->rechg_vol_votable);
+		return rc;
+	}
+//-->[FairPhone][Charging][JasonHsing] Setting jeita fv re-charge voltage for warm temp END --
+
 	return rc;
 }
 
@@ -4441,6 +4657,9 @@ int smblib_init(struct smb_charger *chg)
 	INIT_DELAYED_WORK(&chg->uusb_otg_work, smblib_uusb_otg_work);
 	INIT_DELAYED_WORK(&chg->bb_removal_work, smblib_bb_removal_work);
 	INIT_DELAYED_WORK(&chg->usbov_dbc_work, smblib_usbov_dbc_work);
+	/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area start */
+	INIT_DELAYED_WORK(&chg->role_reversal_check, smblib_dr_role_check_work);
+	/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area end */
 
 	if (chg->wa_flags & CHG_TERMINATION_WA) {
 		INIT_WORK(&chg->chg_termination_work,
@@ -4474,6 +4693,10 @@ int smblib_init(struct smb_charger *chg)
 	chg->fake_batt_status = -EINVAL;
 	chg->jeita_configured = false;
 	chg->sink_src_mode = UNATTACHED_MODE;
+	/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area start */
+	chg->dr_mode = DUAL_ROLE_PROP_MODE_NONE;
+	chg->dr_swap_in_progress = false;
+ 	/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area end */
 
 	switch (chg->mode) {
 	case PARALLEL_MASTER:
@@ -4548,6 +4771,9 @@ int smblib_deinit(struct smb_charger *chg)
 		cancel_delayed_work_sync(&chg->uusb_otg_work);
 		cancel_delayed_work_sync(&chg->bb_removal_work);
 		cancel_delayed_work_sync(&chg->usbov_dbc_work);
+		/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area start */
+		cancel_delayed_work_sync(&chg->role_reversal_check);
+		/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area end */
 		power_supply_unreg_notifier(&chg->nb);
 		smblib_destroy_votables(chg);
 		qcom_step_chg_deinit();

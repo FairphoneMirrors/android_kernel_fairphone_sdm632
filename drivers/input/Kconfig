@@ -200,6 +200,17 @@ config INPUT_KEYCOMBO
 	---help---
 	  Say Y here if you want to take action when some keys are pressed;
 
+# [FairPhone][Fingerprint][akenhsu] FingerPrint driver porting 20181108 BEGIN
+config ELAN_FINGERPRINT
+	tristate "ELAN Fingerprint"
+	default n
+	---help---
+		Fingerprint qualcomm driver enable/disable in the kernel.
+		Say Y here if you want to use qualcomm fingerprint driver,
+		fingerprint driver will support fingerprint function in TEE,
+		it supports ELNA's all fingerprint device.
+# [FairPhone][Fingerprint][akenhsu] 20181108 END
+
 comment "Input Device Drivers"
 
 source "drivers/input/keyboard/Kconfig"

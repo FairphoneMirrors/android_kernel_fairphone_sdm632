@@ -19,6 +19,9 @@
 #include <linux/regulator/consumer.h>
 #include <linux/extcon.h>
 #include <linux/alarmtimer.h>
+/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area start */
+#include <linux/usb/class-dual-role.h>
+/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area end */
 #include "storm-watch.h"
 
 enum print_reason {
@@ -73,6 +76,9 @@ enum print_reason {
 #define USBOV_DBC_VOTER			"USBOV_DBC_VOTER"
 #define FCC_STEPPER_VOTER		"FCC_STEPPER_VOTER"
 #define CHG_TERMINATION_VOTER		"CHG_TERMINATION_VOTER"
+/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area start */
+#define DR_SWAP_VOTER			"DR_SWAP_VOTER"
+/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area end */
 
 #define BOOST_BACK_STORM_COUNT	3
 #define WEAK_CHG_STORM_COUNT	8
@@ -87,6 +93,9 @@ enum print_reason {
 #define TYPEC_DEFAULT_CURRENT_UA	900000
 #define TYPEC_MEDIUM_CURRENT_UA		1500000
 #define TYPEC_HIGH_CURRENT_UA		3000000
+/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area start */
+#define ROLE_REVERSAL_DELAY_MS	2000
+/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area end */
 
 enum smb_mode {
 	PARALLEL_MASTER = 0,
@@ -310,7 +319,10 @@ struct smb_charger {
 	struct mutex		lock;
 	struct mutex		ps_change_lock;
 	struct mutex		vadc_lock;
-
+	/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area start */
+    struct mutex		dr_lock;
+	/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area end */
+	
 	/* power supplies */
 	struct power_supply		*batt_psy;
 	struct power_supply		*usb_psy;
@@ -318,6 +330,9 @@ struct smb_charger {
 	struct power_supply		*bms_psy;
 	struct power_supply		*usb_main_psy;
 	struct power_supply		*usb_port_psy;
+	/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area start */
+	struct dual_role_phy_instance	*dual_role;
+	/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area end */
 	enum power_supply_type		real_charger_type;
 
 	/* notifiers */
@@ -341,6 +356,9 @@ struct smb_charger {
 	struct votable		*chg_disable_votable;
 	struct votable		*pl_enable_votable_indirect;
 	struct votable		*usb_irq_enable_votable;
+//<--[FairPhone][Charging][JasonHsing] Setting jeita fv re-charge voltage for warm temp BEGIN --
+	struct votable		*rechg_vol_votable;
+//-->[FairPhone][Charging][JasonHsing] Setting jeita fv re-charge voltage for warm temp END --
 
 	/* work */
 	struct work_struct	bms_update_work;
@@ -355,7 +373,10 @@ struct smb_charger {
 	struct delayed_work	uusb_otg_work;
 	struct delayed_work	bb_removal_work;
 	struct delayed_work	usbov_dbc_work;
-
+	/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area start */
+    struct delayed_work role_reversal_check;
+	/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area end */
+	
 	/* alarm */
 	struct alarm		moisture_protection_alarm;
 	struct alarm		chg_termination_alarm;
@@ -393,6 +414,10 @@ struct smb_charger {
 	int			typec_mode;
 	int			usb_icl_change_irq_enabled;
 	u32			jeita_status;
+	/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area start */
+	u32			dr_mode;
+	bool		dr_swap_in_progress;
+	/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area end */
 	u8			float_cfg;
 	bool			use_extcon;
 	bool			otg_present;
@@ -596,4 +621,8 @@ int smblib_icl_override(struct smb_charger *chg, bool override);
 
 int smblib_init(struct smb_charger *chg);
 int smblib_deinit(struct smb_charger *chg);
+/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area start */
+int smblib_get_typec_mode(struct smb_charger *chg);
+int smblib_force_dr_mode(struct smb_charger *chg, int mode);
+/* [20190422][TracyChui]Fixed USB preferences can not change in notifications area end */
 #endif /* __SMB5_CHARGER_H */

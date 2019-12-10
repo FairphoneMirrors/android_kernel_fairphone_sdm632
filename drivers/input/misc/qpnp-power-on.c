@@ -313,6 +313,16 @@ static const char * const qpnp_poff_reason[] = {
 	[39] = "Triggered from S3_RESET_KPDPWR_ANDOR_RESIN (power key and/or reset line)",
 };
 
+/*[Arima_8901][bozhi_lin] ARFP3-91: Expose power up and power down reason 20190221 begin*/
+#if 1
+unsigned int qpnp_pon_reason_extern=0;
+unsigned int qpnp_poff_reason_extern=0;
+#else
+char qpnp_pon_reason_extern[256] = "";
+char qpnp_poff_reason_extern[256] = "";
+#endif
+/*[Arima_8901][bozhi_lin] 20190221 end*/
+
 static int
 qpnp_pon_masked_write(struct qpnp_pon *pon, u16 addr, u8 mask, u8 val)
 {
@@ -2287,8 +2297,17 @@ static int qpnp_pon_probe(struct platform_device *pdev)
 		goto err_out;
 	}
 
+/*[Arima_8901][bozhi_lin] ARFP3-91: Expose power up and power down reason 20190221 begin*/
+#if 1
+	if (sys_reset) {
+		boot_reason = ffs(pon_sts);
+		qpnp_pon_reason_extern = ffs(pon_sts);
+	}
+#else
 	if (sys_reset)
 		boot_reason = ffs(pon_sts);
+#endif
+/*[Arima_8901][bozhi_lin] 20190221 end*/
 
 	index = ffs(pon_sts) - 1;
 	cold_boot = !qpnp_pon_is_warm_reset();
@@ -2322,6 +2341,13 @@ static int qpnp_pon_probe(struct platform_device *pdev)
 		}
 		poff_sts = buf[0] | (buf[1] << 8);
 	}
+
+/*[Arima_8901][bozhi_lin] ARFP3-91: Expose power up and power down reason 20190221 begin*/
+	if (sys_reset) {
+		qpnp_poff_reason_extern = ffs(poff_sts);
+	}
+/*[Arima_8901][bozhi_lin] 20190221 end*/
+
 	index = ffs(poff_sts) - 1 + reason_index_offset;
 	if (index >= ARRAY_SIZE(qpnp_poff_reason) || index < 0) {
 		dev_info(&pon->pdev->dev,

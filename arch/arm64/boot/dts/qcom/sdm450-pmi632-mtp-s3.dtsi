@@ -24,10 +24,10 @@
 &mdss_dsi0 {
 	qcom,dsi-pref-prim-pan = <&dsi_hx8399c_truly_vid>;
 	pinctrl-names = "mdss_default", "mdss_sleep";
-	pinctrl-0 = <&mdss_dsi_active &mdss_te_active &bklt_en_default>;
-	pinctrl-1 = <&mdss_dsi_suspend &mdss_te_suspend>;
+	//pinctrl-0 = <&mdss_dsi_active &mdss_te_active &bklt_en_default>;
+	//pinctrl-1 = <&mdss_dsi_suspend &mdss_te_suspend>;
 
-	qcom,platform-bklight-en-gpio = <&pm8953_gpios 4 0>;
+	//qcom,platform-bklight-en-gpio = <&pm8953_gpios 4 0>;
 	lab-supply = <&lcdb_ldo_vreg>;
 	ibb-supply = <&lcdb_ncp_vreg>;
 
