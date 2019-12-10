@@ -206,9 +206,9 @@
 	/delete-property/ qcom,msm-vdd-wsa-switch-voltage;
 	/delete-property/ qcom,msm-vdd-wsa-switch-current;
 };
-&spi_3 {
+/*&spi_3 {
 	status = "disabled";
-};
+};*/
 
 &i2c_1 {
 	status = "okay";
