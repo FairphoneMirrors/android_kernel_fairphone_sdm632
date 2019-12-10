@@ -11,11 +11,11 @@
  * GNU General Public License for more details.
  */
 
-&blsp1_serial1 {
+/*&blsp1_serial1 {
 	status = "ok";
 	pinctrl-names = "default";
 	pinctrl-0 = <&uart1_console_active>;
-};
+};*/
 
 &wdog {
 	status = "disabled";
