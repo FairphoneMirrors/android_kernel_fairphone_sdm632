@@ -1,4 +1,4 @@
-subdir-ccflags-$(CONFIG_PPC_WERROR) := -Werror
+subdir-ccflags-$(CONFIG_PPC_WERROR) := 
 
 obj-$(CONFIG_PERF_EVENTS)	+= callchain.o perf_regs.o
 

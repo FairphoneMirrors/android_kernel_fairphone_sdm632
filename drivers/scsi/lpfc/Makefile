@@ -23,7 +23,7 @@ ccflags-$(GCOV) := -fprofile-arcs -ftest-coverage
 ccflags-$(GCOV) += -O0
 
 ifdef WARNINGS_BECOME_ERRORS
-ccflags-y += -Werror
+ccflags-y += 
 endif
 
 obj-$(CONFIG_SCSI_LPFC) := lpfc.o

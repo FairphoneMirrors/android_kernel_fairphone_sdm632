@@ -23,7 +23,7 @@ CFLAGS += -ggdb3 -Wall -Wextra -std=gnu99 -O6 -U_FORTIFY_SOURCE -D_FORTIFY_SOURC
 
 # Treat warnings as errors unless directed not to
 ifneq ($(WERROR),0)
-  CFLAGS += -Werror
+  CFLAGS += 
 endif
 
 CFLAGS += -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE

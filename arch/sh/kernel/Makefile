@@ -47,4 +47,4 @@ obj-$(CONFIG_PERF_EVENTS)	+= perf_event.o perf_callchain.o
 
 obj-$(CONFIG_HAVE_HW_BREAKPOINT)		+= hw_breakpoint.o
 
-ccflags-y := -Werror
+ccflags-y := 
