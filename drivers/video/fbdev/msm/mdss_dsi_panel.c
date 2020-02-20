@@ -526,6 +526,19 @@ int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 			gpio_free(ctrl_pdata->disp_en_gpio);
 		}
 		gpio_set_value((ctrl_pdata->rst_gpio), 0);
+
+		//[Arima][8901][Jialongjhan]Modify pull TP reset Pin position 20191104 Start
+		//Move "pull low TP reset pin" from mdss_dsi.c,
+		//it have to same with LCM reset pin pull low
+		
+		/*[Fairphone_8901][Jialong]To reduce power,pull down Touch reset pin when panel off start*/
+		//TP reset pin pull low with LCD reset pin at same time.
+		gpio_direction_output(64, 0);
+		/*[Fairphone_8901][Jialong]To reduce power,pull down Touch reset pin when panel off end*/
+		
+		msleep(1);
+		//[Arima][8901][Jialongjhan]Modify pull TP reset Pin position 20191104 End
+		
 		gpio_free(ctrl_pdata->rst_gpio);
 		if (gpio_is_valid(ctrl_pdata->mode_gpio))
 			gpio_free(ctrl_pdata->mode_gpio);
