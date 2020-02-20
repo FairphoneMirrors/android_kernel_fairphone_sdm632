@@ -405,9 +405,6 @@ static int mdss_dsi_panel_power_off(struct mdss_panel_data *pdata)
 	if (ret)
 		pr_err("%s: failed to disable vregs for %s\n",
 			__func__, __mdss_dsi_pm_name(DSI_PANEL_PM));
-    /*[Fairphone_8901][Jialong]To reduce power,pull down Touch reset pin when panel off start*/
-    gpio_direction_output(64, 0);
-    /*[Fairphone_8901][Jialong]To reduce power,pull down Touch reset pin when panel off end*/
 
 end:
 	return ret;

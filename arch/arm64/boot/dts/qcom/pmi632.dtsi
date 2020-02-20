@@ -332,6 +332,11 @@
 					500000 500000>;
 //-->[FairPhone][Charging][JasonHsing] Add condition of charging current for thermal-mitigation 20190327 END --
 
+//<2019/11/28-JessicaTseng, modify charging termination current
+			qcom,chg-term-src = <1>;
+			qcom,chg-term-current-ma = <(-100)>;
+//>2019/11/28-JessicaTseng
+
 			qcom,chgr@1000 {
 				reg = <0x1000 0x100>;
 				interrupts =
@@ -488,7 +493,11 @@
 			#address-cells = <1>;
 			#size-cells = <1>;
 
-			qcom,qg-iterm-ma = <100>;
+//<2019/11/28-JessicaTseng, modify charging termination current
+			//qcom,qg-iterm-ma = <100>;
+			qcom,qg-iterm-ma = <150>;
+//>2019/11/28-JessicaTseng
+
 //<--[Fairphone][Charging][JasonHsing] Re-charge condition for battery to 4.3V 20190103 BEGIN -
 			//qcom,hold-soc-while-full;
 			//qcom,linearize-soc;
